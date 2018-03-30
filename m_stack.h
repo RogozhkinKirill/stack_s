@@ -6,36 +6,43 @@
 #include <afxres.h>
 #include <cstring>
 #include <iostream>
+#include <fstream>
 
-#define debug_stack_s_dump(var) var->dump(1 , __FILE__ , __PRETTY_FUNCTION__ , #var , __LINE__);
+#include "errors_warning.h"
+
+#define debug_stack_s_dump(var , stream) if(stream == 1) \
+                                     var->dumpToConsole(__FILE__ , __PRETTY_FUNCTION__ , #var , __LINE__); \
+                                         else \
+                                             var->dumpToFile(__FILE__ , __PRETTY_FUNCTION__ , #var , __LINE__);
 
 
-using namespace std;
+//using namespace std;
 
 template <class array_t>
 class m_stack
 {
 public:
 
-//Creators
+//Constructor
     explicit m_stack(void);
 
     explicit m_stack(array_t* arr , unsigned int sze);
-//Destoyer
+//Destructor
     ~m_stack();
 
 //Functions
     //Verifier
-    bool ok();
+    WnE ok();
 
-    bool dump(int stream , string file , string function , string variable , size_t line);
+    WnE dumpToConsole(std::string file , std::string function , std::string variable , size_t line);
+    WnE dumpToFile(std::string file , std::string function , std::string variable , size_t line);
 //Getting information about struct m_stack
 
     /**
      * get _capacity of stack_s
      * @return _capasity
      */
-    size_t getCapasity(void);
+    size_t getCapacity(void);
 
     /**
      *Get size of array in struct stack_s
@@ -70,7 +77,7 @@ public:
      * @return TRUE  if element was added
      *         FALSE if element was not added
      */
-    bool push (array_t);
+    WnE push (array_t);
 
     /**
      *
@@ -86,12 +93,12 @@ public:
     * @return TRUE if clearing finished correctly
     *         FALSE if cleaning finished incorrectly
     */
-    bool    clear(void);
+    bool clear(void);
 
     array_t top(void);
     bool isEmpty(void);
 
-    bool isFully(void);
+    bool isFull(void);
 protected:
 
     /**
@@ -102,8 +109,8 @@ protected:
 private:
     void*    _first_canary;
     array_t* _data;
-    size_t   _max_size;
     size_t   _capacity;
+    size_t   _max_size;
 
     /**
      *
@@ -125,13 +132,13 @@ private:
 
 
 
-//Creators
+//Constructor
 template <class array_t>
 m_stack<array_t>::m_stack(void) :
         _first_canary(0),
         _data(new array_t[1]),
-        _max_size(1),
-        _capacity(0),
+        _capacity(1),
+        _max_size(0),
         _last_canary(0) {}
 
 /**
@@ -144,16 +151,21 @@ m_stack<array_t>::m_stack(void) :
 template <class array_t>
 m_stack<array_t>::m_stack(array_t *arr, unsigned int sze) :
         _first_canary(0),
-        _data(arr),
-        _max_size(sze),
+        _data(new array_t(sze)),
         _capacity(sze),
-        _last_canary(0) {}
+        _max_size(sze),
+        _last_canary(0) {
+    for(int i=0; i<sze; ++i) {
+        _data[i] = arr[i];
+    }
+}
 
-//Destroyer
+//Destructor
 template <class array_t>
 m_stack<array_t>::~m_stack(void) {
     if(_data!= 0)
         delete  _data;
+        _data = 0;
 }
 
 
@@ -165,18 +177,23 @@ m_stack<array_t>::~m_stack(void) {
  *        FALSE if state of stack_s is not correct
  */
 template <class array_t>
-bool
+WnE
 m_stack<array_t>::ok(void) {
-    if(_data) {
-        if(_capacity <= _max_size
-                     &&
-           _first_canary == 0
-                     &&
-           _last_canary == 0)
-            return TRUE;
-    }
+    WnE result = 0;
 
-    return FALSE;
+    if(this)
+        if(_data) {
+            if(_max_size > _capacity)
+                add_WnE(result , __OVERFLOW__);
+            if(_first_canary != 0 || _last_canary != 0)
+                add_WnE(result , __CHANGED_PRIVATE_ZONE__);
+            if(_capacity == 0)
+                add_WnE(result , __INVALED_VALUE__);
+        }
+        else
+            add_WnE(result , __NULL_POINTER__);
+
+    return result;
 }
 
 /**
@@ -189,52 +206,144 @@ m_stack<array_t>::ok(void) {
  *         FALSE if state of stack_s is not correct
  */
 template <class array_t>
-bool
-m_stack<array_t>::dump(int stream , string file , string function , string variable , size_t line) {
+WnE
+m_stack<array_t>::dumpToConsole(std::string file , std::string function , std::string variable , size_t line) {
+    WnE result = 0;
+
     size_t warnings = 0;
     size_t errors =   0;
 
-    cout                                                                                       << endl;
-    cout                                                                                       << endl;
-    cout << "================================================================================" << endl;
-    cout << "                                 M_STACK DUMP                                   " << endl;
-    cout                                                                                       << endl;
-    cout << "File: " << file                                                                   << endl;
-    cout << "Function: " << function                                                           << endl;
-    cout << "Line: " << line                                                                   << endl;
-    cout << "Variable: " << variable                                                           << endl;
-    cout << "Address of variable: " << this                                                    << endl;
-    cout                                                                                       << endl;
-    if(_first_canary != 0) ++warnings;
-    cout << "_first_canary: " << _first_canary                                                 << endl;
-    cout                                                                                       << endl;
-    cout << "_max_size: " << _max_size                                                         << endl;
-    if(_capacity > _max_size) { ++errors;
-    cout << "ERROR: _capacity: " << _capacity << "  ERROR"                                     << endl; }
-    else if(_capacity == _max_size) { ++warnings;
-    cout << "WARNING: _capacity: " << _capacity << "  WARNING"                                 << endl; }
+    std::cout                                                                                       << std::endl;
+    std::cout                                                                                       << std::endl;
+    std::cout << "================================================================================" << std::endl;
+    std::cout << "                                 M_STACK DUMP                                   " << std::endl;
+    std::cout                                                                                       << std::endl;
+    std::cout << "File: " << file                                                                   << std::endl;
+    std::cout << "Function: " << function                                                           << std::endl;
+    std::cout << "Line: " << line                                                                   << std::endl;
+    std::cout << "Variable: " << variable                                                           << std::endl;
+    std::cout << "Address of variable: " << this                                                    << std::endl;
+    std::cout                                                                                       << std::endl;
+
+    if(_first_canary != 0) { ++warnings; add_WnE(result , __CHANGED_PRIVATE_ZONE__);
+    std::cout << "WARNING: _first_canary: " << _first_canary << "WARNONG"                           << std::endl; }
     else
-    cout << "_capacity: " << _capacity                                                         << endl;
-    cout << "_data: " << _data                                                                 << endl;
+    std::cout << "_first_canary: " << _first_canary                                                 << std::endl;
+
+    std::cout                                                                                       << std::endl;
+    std::cout << "_capacity: " << _capacity                                                         << std::endl;
+
+    if(_max_size > _capacity) { ++errors; add_WnE(result , __OVERFLOW__);
+    std::cout << "ERROR: _max_size: " << _max_size << "  ERROR"                                     << std::endl; }
+    else if(_max_size == _capacity) { ++warnings; add_WnE(result , __FILLED__);
+    std::cout << "WARNING: _max_size: " << _max_size << "  WARNING"                                 << std::endl; }
+    else
+    std::cout << "_max_size: " << _max_size                                                         << std::endl;
+
+    std::cout << "_data: " << _data                                                                 << std::endl;
     if(_data != 0)
-    for(int i=0; i<_capacity; ++i) {
-    cout << "_data[" << i << "]: " << _data[i]                                                 << endl; }
+    for(int i=0; i<_max_size; ++i) {
+    std::cout << "_data[" << i << "]: " << _data[i]                                                 << std::endl; }
     else ++warnings;
-    for(int i=_capacity; i<_max_size; ++i)
-    cout << "\t_data[" << i << "]: " << _data[i]                                               << endl;
-    cout                                                                                       << endl;
-    if(_last_canary != 0) ++warnings;
-    cout << "_last_canary: " << _last_canary                                                   << endl;
-    cout                                                                                       << endl;
-    cout                                                                                       << endl;
-    cout << "WARNINGS: " << warnings                                                           << endl;
-    cout << "ERRORS: " << errors                                                               << endl;
-    cout << "                               END M_STACK DUMP                                 " << endl;
-    cout << "================================================================================" << endl;
-    cout                                                                                       << endl;
-    cout                                                                                       << endl;
+    for(int i=_max_size; i<_capacity; ++i)
+    std::cout << "\t_data[" << i << "]: " << _data[i]                                               << std::endl;
+
+    std::cout                                                                                       << std::endl;
+    if(_last_canary != 0) { ++warnings; add_WnE(result , __CHANGED_PRIVATE_ZONE__);
+    std::cout << "WARNING: _last_canary: " << _last_canary << "WARNING"                             << std::endl; }
+    else
+    std::cout << "_last_canary: " << _last_canary                                                   << std::endl;
+
+    std::cout                                                                                       << std::endl;
+    std::cout                                                                                       << std::endl;
+    std::cout << "WARNINGS: " << warnings                                                           << std::endl;
+    std::cout << "ERRORS: " << errors                                                               << std::endl;
+    std::cout << "                               END M_STACK DUMP                                 " << std::endl;
+    std::cout << "================================================================================" << std::endl;
+    std::cout                                                                                       << std::endl;
+    std::cout                                                                                       << std::endl;
+
+    return result;
 }
 
+/**
+ *
+ * @tparam array_t
+ * @param stream
+ *                  1 - print dump to console
+ *                  2 - print dump to file
+ * @return TRUE if state of stack_s is correct
+ *         FALSE if state of stack_s is not correct
+ */
+template <class array_t>
+WnE
+m_stack<array_t>::dumpToFile(std::string file, std::string function, std::string variable, size_t line) {
+    std::ofstream fout(dump_file , std::ios_base::app);
+    WnE result = 0;
+
+
+    if(fout) {
+        size_t warnings = 0;
+        size_t errors =   0;
+
+        fout                                                                                       << std::endl;
+        fout                                                                                       << std::endl;
+        fout << "================================================================================" << std::endl;
+        fout << "                                 M_STACK DUMP                                   " << std::endl;
+        fout                                                                                       << std::endl;
+        fout << "File: " << file                                                                   << std::endl;
+        fout << "Function: " << function                                                           << std::endl;
+        fout << "Line: " << line                                                                   << std::endl;
+        fout << "Variable: " << variable                                                           << std::endl;
+        fout << "Address of variable: " << this                                                    << std::endl;
+        fout                                                                                       << std::endl;
+
+        if(_first_canary != 0) { ++warnings; add_WnE(result , __CHANGED_PRIVATE_ZONE__);
+        fout << "WARNING: _first_canary: " << _first_canary << "WARNONG"                           << std::endl; }
+        else
+        fout << "_first_canary: " << _first_canary                                                 << std::endl;
+
+        fout                                                                                       << std::endl;
+        fout << "_capacity: " << _capacity                                                         << std::endl;
+
+        if(_max_size > _capacity) { ++errors; add_WnE(result , __INVALED_VALUE__);
+        fout << "ERROR: _max_size: " << _max_size << "  ERROR"                                     << std::endl; }
+        else if(_max_size == _capacity) { ++warnings; add_WnE(result , __FILLED__);
+        fout << "WARNING: _max_size: " << _max_size << "  WARNING"                                 << std::endl; }
+        else
+        fout << "_max_size: " << _max_size                                                         << std::endl;
+
+        fout << "_data: " << _data                                                                 << std::endl;
+        if(_data != 0)
+            for(int i=0; i<_max_size; ++i) {
+        fout << "_data[" << i << "]: " << _data[i]                                                 << std::endl; }
+        else ++warnings;
+
+        for(int i=_max_size; i<_capacity; ++i)
+        fout << "\t_data[" << i << "]: " << _data[i]                                               << std::endl;
+
+        fout                                                                                       << std::endl;
+        if(_last_canary != 0) { ++warnings; add_WnE(result , __CHANGED_PRIVATE_ZONE__);
+        fout << "WARNING: _last_canary: " << _last_canary << "WARNING"                             << std::endl; }
+        else
+        fout << "_last_canary: " << _last_canary                                                   << std::endl;
+
+        fout                                                                                       << std::endl;
+        fout                                                                                       << std::endl;
+        fout << "WARNINGS: " << warnings                                                           << std::endl;
+        fout << "ERRORS: " << errors                                                               << std::endl;
+        fout << "                               END M_STACK DUMP                                 " << std::endl;
+        fout << "================================================================================" << std::endl;
+        fout                                                                                       << std::endl;
+        fout                                                                                       << std::endl;
+
+
+
+        fout.close();
+    }
+
+    return result;
+}
 
 ///Getting information about struct stack_s
 /**
@@ -243,8 +352,8 @@ m_stack<array_t>::dump(int stream , string file , string function , string varia
  */
 template <class array_t>
 size_t
-m_stack<array_t>::getCapasity(void) {
-    return _capacity;
+m_stack<array_t>::getMaxSize(void) {
+    return _max_size;
 }
 
 /**
@@ -253,8 +362,8 @@ m_stack<array_t>::getCapasity(void) {
  */
 template <class array_t>
 size_t
-m_stack<array_t>::getMaxSize(void) {
-    return _max_size;
+m_stack<array_t>::getCapacity(void) {
+    return _capacity;
 }
 
 /**
@@ -283,7 +392,7 @@ m_stack<array_t>::getFirstCanary(void) {
  */
 template <class array_t>
 void*
-m_stack<array_t>::getLastCanary (void) {
+m_stack<array_t>::getLastCanary(void) {
     return _last_canary;
 }
 
@@ -299,15 +408,15 @@ m_stack<array_t>::getLastCanary (void) {
  *         FALSE if element was not added
  */
 template <class array_t>
-bool
+WnE
 m_stack<array_t>::push(array_t element) {
-    if(isFully() != TRUE) {
-        _data[_capacity++] = element;
+    if(isFull() != TRUE) {
+        _data[_max_size++] = element;
     }
     else {
         bool res = increaseSize();
         if(res == TRUE) {
-            _data[_capacity++] = element;
+            _data[_max_size++] = element;
             return TRUE;
         }
     }
@@ -325,8 +434,8 @@ template <class array_t>
 array_t
 m_stack<array_t>::pop(void)
 {
-    if(_capacity != 0) {
-        return _data[--_capacity];
+    if(_max_size != 0) {
+        return _data[--_max_size];
     }
 
     return 0;
@@ -336,7 +445,7 @@ template <class array_t>
 array_t
 m_stack<array_t>::top(void) {
     if(isEmpty() != TRUE)
-        return _data[_capacity - 1];
+        return _data[_max_size - 1];
     return 0;
 }
 
@@ -350,7 +459,7 @@ template <class array_t>
 bool
 m_stack<array_t>::increaseSize(void) {
     void* res;
-    unsigned int newSize = (unsigned int)((double)_max_size * 2);
+    unsigned int newSize = (unsigned int)((double)_capacity * 2);
     array_t* newArray = new array_t[newSize];
 
     if(newArray != 0) {
@@ -359,7 +468,7 @@ m_stack<array_t>::increaseSize(void) {
         if(res != 0) {
             delete _data;
             _data = newArray;
-            _max_size = newSize;
+            _capacity = newSize;
 
             return TRUE;
         }
@@ -382,8 +491,8 @@ m_stack<array_t>::increaseSize(unsigned int newSize) {
     array_t* newArray = new array_t[newSize];
 
     if(newArray != 0) {
-        if(newSize > _max_size) {
-            newSize = _max_size;
+        if(newSize > _capacity) {
+            newSize = _capacity;
             res = memcpy(newArray, _data, sizeof(array_t) * newSize);
         }
         else
@@ -392,7 +501,7 @@ m_stack<array_t>::increaseSize(unsigned int newSize) {
         if(res != 0) {
             delete _data;
             _data = newArray;
-            _max_size = newSize;
+            _capacity = newSize;
 
             return TRUE;
         }
@@ -412,7 +521,7 @@ bool
 m_stack<array_t>::clear(void) {
     if(_data) {
         if(increaseSize(1)) {
-            _capacity = 0;
+            _max_size = 0;
             return TRUE;
         }
     }
@@ -429,7 +538,7 @@ m_stack<array_t>::clear(void) {
 template <class array_t>
 bool
 m_stack<array_t>::isEmpty(void) {
-    if(_capacity == 0)
+    if(_max_size == 0)
         return TRUE;
     return FALSE;
 }
@@ -442,8 +551,8 @@ m_stack<array_t>::isEmpty(void) {
  */
 template <class array_t>
 bool
-m_stack<array_t>::isFully(void) {
-     if(_capacity == _max_size)
+m_stack<array_t>::isFull(void) {
+     if(_max_size == _capacity)
         return TRUE;
     else
         return FALSE;

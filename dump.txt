@@ -1,0 +1,63 @@
+
+
+================================================================================
+                                 M_STACK DUMP                                   
+
+File: D:\Study\Programming\Projects\C_C++\stack_s\main.cpp
+Function: int main()
+Line: 11
+Variable: st
+Address of variable: 0x67f5e0
+
+_first_canary: 0
+
+_capacity: 3
+_max_size: 2
+_data: 0x67f620
+_data[0]: 1
+_data[1]: 2
+	_data[2]: 3
+
+_last_canary: 0
+
+
+WARNINGS: 0
+ERRORS: 0
+                               END M_STACK DUMP                                 
+================================================================================
+
+
+
+
+================================================================================
+                                 M_STACK DUMP                                   
+
+File: D:\Study\Programming\Projects\C_C++\stack_s\main.cpp
+Function: int main()
+Line: 29
+Variable: st
+Address of variable: 0x67f5e0
+
+_first_canary: 0
+
+_capacity: 8
+_max_size: 6
+_data: 0x67fa38
+_data[0]: 4
+_data[1]: 5
+_data[2]: 6
+_data[3]: 7
+_data[4]: 8
+_data[5]: 9
+	_data[6]: 0
+	_data[7]: 2138315170
+
+_last_canary: 0
+
+
+WARNINGS: 0
+ERRORS: 0
+                               END M_STACK DUMP                                 
+================================================================================
+
+

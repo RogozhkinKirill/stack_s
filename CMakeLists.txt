@@ -7,4 +7,6 @@ add_executable(stack_s
         main.cpp
 
         m_stack.cpp
-        m_stack.h)
+        m_stack.h
+
+        errors_warning.h)
