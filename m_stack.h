@@ -22,114 +22,46 @@ template <class array_t>
 class m_stack
 {
 public:
-
 //Constructor
     explicit m_stack(void);
-
     explicit m_stack(array_t* arr , unsigned int sze);
 //Destructor
     ~m_stack();
 
 //Functions
-    //Verifier
     WnE ok();
-
     WnE dumpToConsole(std::string file , std::string function , std::string variable , size_t line);
-    WnE dumpToFile(std::string file , std::string function , std::string variable , size_t line);
-//Getting information about struct m_stack
+    WnE dumpToFile   (std::string file , std::string function , std::string variable , size_t line);
 
-    /**
-     * get _capacity of stack_s
-     * @return _capasity
-     */
     size_t getCapacity(void);
-
-    /**
-     *Get size of array in struct stack_s
-     * @return _max_size
-     */
     size_t getMaxSize(void);
-
-    /**Increase size of _data
-     *
-     *  New _max_size is [_max_size * 1.7]
-     *  @return TRUE if copying finished correctly
-     *          FALSE if copying finished incorrectly
-     */
     bool increaseSize(void);
-
-
-
-
-    /**Increase size of _data
-     *
-     * @param newSize new size of _data
-     * @return TRUE  if realloc is successful
-     *         FALSE if realloc is unsuccessful
-     */
     bool increaseSize(unsigned int newSize);
 
-    /**
-     *
-     * @tparam array_t
-     * @param element is new element to the _data
-     *                which will be added to the end of the stack
-     * @return TRUE  if element was added
-     *         FALSE if element was not added
-     */
-    WnE push (array_t);
-
-    /**
-     *
-     * @tparam array_t
-     * @return top element if it is possible
-     *         0           if it is not possible
-     */
-    array_t pop (void);
-
-   /**
-    *
-    * @tparam array_t
-    * @return TRUE if clearing finished correctly
-    *         FALSE if cleaning finished incorrectly
-    */
     bool clear(void);
 
+    WnE     push (array_t);
+    array_t pop (void);
     array_t top(void);
+
     bool isEmpty(void);
-
     bool isFull(void);
-protected:
 
-    /**
-     *Get pointer on _data
-     * @return pointer on _data
-     */
+protected:
     array_t* getData(void);
+
 private:
+
     void*    _first_canary;
     array_t* _data;
     size_t   _capacity;
     size_t   _max_size;
 
-    /**
-     *
-     * @return _first_canary
-     */
     void* getFirstCanary(void);
-
-    /**
-     *
-     * @return _last_canary
-     */
     void* getLastCanary (void);
 
     void* _last_canary;
 };
-
-
-
-
 
 
 //Constructor
@@ -164,7 +96,7 @@ m_stack<array_t>::m_stack(array_t *arr, unsigned int sze) :
 template <class array_t>
 m_stack<array_t>::~m_stack(void) {
     if(_data!= 0)
-        delete  _data;
+        delete[]  _data;
         _data = 0;
 }
 
