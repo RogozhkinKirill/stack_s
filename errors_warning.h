@@ -38,12 +38,11 @@ typedef int WnE; //WnE == warning and errors
 #define error(x , y) WnE y = x;
 #define warning(x , y) WnE y = x;
 
-#define add_WnE(result , WnE) if(result & WnE != WnE) \
-                                result += WnE;
+#define add_WnE(result , WnE) result |= WnE;
 
 
 ///ERRORS
-error(0b10000000000000000000000000000000 , __INVALED_VALUE__);
+error(0b10000000000000000000000000000000 , __INVALID_VALUE__);
 error(0b01000000000000000000000000000000 , __OVERFLOW__);
 
 ///WARNING

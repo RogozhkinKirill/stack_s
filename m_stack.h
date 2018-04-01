@@ -97,7 +97,7 @@ template <class array_t>
 m_stack<array_t>::~m_stack(void) {
     if(_data!= 0)
         delete[]  _data;
-        _data = 0;
+        _data = nullptr;
 }
 
 
@@ -120,7 +120,7 @@ m_stack<array_t>::ok(void) {
             if(_first_canary != 0 || _last_canary != 0)
                 add_WnE(result , __CHANGED_PRIVATE_ZONE__);
             if(_capacity == 0)
-                add_WnE(result , __INVALED_VALUE__);
+                add_WnE(result , __INVALID_VALUE__);
         }
         else
             add_WnE(result , __NULL_POINTER__);
@@ -238,7 +238,7 @@ m_stack<array_t>::dumpToFile(std::string file, std::string function, std::string
         fout                                                                                       << std::endl;
         fout << "_capacity: " << _capacity                                                         << std::endl;
 
-        if(_max_size > _capacity) { ++errors; add_WnE(result , __INVALED_VALUE__);
+        if(_max_size > _capacity) { ++errors; add_WnE(result , __INVALID_VALUE__);
         fout << "ERROR: _max_size: " << _max_size << "  ERROR"                                     << std::endl; }
         else if(_max_size == _capacity) { ++warnings; add_WnE(result , __FILLED__);
         fout << "WARNING: _max_size: " << _max_size << "  WARNING"                                 << std::endl; }
