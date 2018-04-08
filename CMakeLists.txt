@@ -9,4 +9,10 @@ add_executable(stack_s
         m_stack.cpp
         m_stack.h
 
-        errors_warning.h)
+        errors_warning.h
+
+        m_stack_math.cpp
+        m_stack_math.h errors_warning.cpp
+        )
+
+add_definitions()

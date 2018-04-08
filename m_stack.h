@@ -7,6 +7,7 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
+#include <new>
 
 #include "errors_warning.h"
 
@@ -26,7 +27,7 @@ public:
     explicit m_stack(void);
     explicit m_stack(array_t* arr , unsigned int sze);
 //Destructor
-    ~m_stack();
+    virtual ~m_stack();
 
 //Functions
     WnE ok();
@@ -40,9 +41,9 @@ public:
 
     bool clear(void);
 
-    WnE     push (array_t);
+    WnE    push (array_t);
     array_t pop (void);
-    array_t top(void);
+    array_t top (void);
 
     bool isEmpty(void);
     bool isFull(void);
@@ -390,23 +391,25 @@ m_stack<array_t>::top(void) {
 template <class array_t>
 bool
 m_stack<array_t>::increaseSize(void) {
-    void* res;
-    unsigned int newSize = (unsigned int)((double)_capacity * 2);
-    array_t* newArray = new array_t[newSize];
+    void *res;
+    unsigned int newSize = (unsigned int) ((double) _capacity * 2);
 
-    if(newArray != 0) {
-        res = memcpy(newArray, _data, sizeof(array_t) * newSize);
-
-        if(res != 0) {
-            delete _data;
-            _data = newArray;
-            _capacity = newSize;
-
-            return TRUE;
-        }
+    array_t *newArray;
+    try {
+        newArray = new array_t[newSize];
+    } catch (const std::bad_alloc &e) {
+        return FALSE;
     }
 
-    return FALSE;
+    res = memcpy(newArray, _data, sizeof(array_t) * newSize);
+
+    if (res != 0) {
+        delete _data;
+        _data = newArray;
+        _capacity = newSize;
+    }
+
+    return TRUE;
 }
 
 /**
@@ -420,23 +423,28 @@ template <class array_t>
 bool
 m_stack<array_t>::increaseSize(unsigned int newSize) {
     void* res;
-    array_t* newArray = new array_t[newSize];
+    array_t* newArray;
 
-    if(newArray != 0) {
-        if(newSize > _capacity) {
-            newSize = _capacity;
-            res = memcpy(newArray, _data, sizeof(array_t) * newSize);
-        }
-        else
-            res = memcpy(newArray, _data, sizeof(array_t) * newSize);
+    try {
+        newArray = new array_t[newSize];
+    } catch(std::bad_alloc& e) {
+        return FALSE;
+    }
 
-        if(res != 0) {
-            delete _data;
-            _data = newArray;
-            _capacity = newSize;
 
-            return TRUE;
-        }
+    if(newSize > _capacity) {
+        newSize = _capacity;
+        res = memcpy(newArray, _data, sizeof(array_t) * newSize);
+    }
+    else
+        res = memcpy(newArray, _data, sizeof(array_t) * newSize);
+
+    if(res != 0) {
+        delete _data;
+        _data = newArray;
+        _capacity = newSize;
+
+        return TRUE;
     }
 
     return FALSE;
