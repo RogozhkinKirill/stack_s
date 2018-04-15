@@ -20,4 +20,17 @@ public:
     void mul(void);
     void div(void);
     void pow(void);
+
+    void inc(void);
+    void dec(void);
+
+    void m_or(void);
+    void m_nor(void);
+    void m_xor(void);
+    void m_and(void);
+    void m_nand(void);
+    void m_not(void);
+
+    void m_shl(void);
+    void m_shr(void);
 };

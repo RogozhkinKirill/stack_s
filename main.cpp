@@ -15,8 +15,9 @@ int main()
     st->push(4);
     st->push(5);
     st->push(6);
-    st->push(7);
-    st->push(8);
+    st->push(1);
+    st->push(3);
+    st->m_shl();
     debug_stack_s_dump(st , 2);
     st->pow();
     debug_stack_s_dump(st , 2);

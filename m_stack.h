@@ -51,6 +51,7 @@ public:
 protected:
     array_t* getData(void);
 
+
 private:
 
     void*    _first_canary;
